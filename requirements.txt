@@ -1,0 +1,7 @@
+telepot==6.4
+django==1.9.5
+
+# Mycroft adapt requirements
+argparse==1.2.1
+pyee==0.1.0
+six==1.10.0
