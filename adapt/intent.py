@@ -99,7 +99,10 @@ class Intent(object):
             local_tags.remove(optional_tag)
             intent_confidence += 1.0
 
-        total_confidence = intent_confidence / len(tags) * confidence
+        if len(tags) == 0:
+            total_confidence = 0
+        else:
+            total_confidence = intent_confidence / len(tags) * confidence
 
         target_client, canonical_form = find_first_tag(local_tags, CLIENT_ENTITY_NAME)
 

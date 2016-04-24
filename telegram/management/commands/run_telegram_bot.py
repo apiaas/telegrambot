@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
         self.stdout.write('Starting {} bot.'.format(config.name))
         loop = asyncio.get_event_loop()
-        loop.create_task(Bot(config.token).messageLoop())
+        loop.create_task(Bot(config.token).message_loop())
         self.stdout.write('Listening ...')
 
         try:

@@ -59,8 +59,3 @@ class Command(BaseCommand):
         self.stdout.write(
             'Bot was started successfully. You can use `supervisorctl` to manage it.'
         )
-
-
-
-
-

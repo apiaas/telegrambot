@@ -1,5 +1,6 @@
-telepot==6.4
+telepot==7.0
 django==1.9.5
+jsonfield==1.0.3
 
 # Mycroft adapt requirements
 argparse==1.2.1
