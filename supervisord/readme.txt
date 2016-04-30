@@ -1,1 +1,0 @@
-This directory contains supervisor temp and log files.

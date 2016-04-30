@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'brain',
     'telegram',
+    'deployment',
 ]
 
 MIDDLEWARE_CLASSES = [

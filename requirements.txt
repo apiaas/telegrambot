@@ -1,6 +1,7 @@
 telepot==7.0
 django==1.9.5
 jsonfield==1.0.3
+gunicorn==19.4.5
 
 # Mycroft adapt requirements
 argparse==1.2.1

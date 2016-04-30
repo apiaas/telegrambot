@@ -1,0 +1,1 @@
+Store socket connections and process ids.
