@@ -1,5 +1,6 @@
 from adapt.intent import IntentBuilder
 from adapt.engine import IntentDeterminationEngine
+from brain.httpclient import HttpClient
 
 engine = IntentDeterminationEngine()
 
@@ -39,7 +40,7 @@ def determine(text):
     return [i for i in engine.determine_intent(text) if i.get('confidence') > 0]
 
 
-def search_intent(text, data=None):
+def search_intent(text, data=None, user=None):
     if not data:
         data = {}
     si = determine(text)
@@ -54,6 +55,8 @@ def search_intent(text, data=None):
         data['search_query'] = search_str
         data['next_page'] = 2
         data['prev_page'] = 0
+        client = HttpClient()
+        print(client.search(text=search_str, user=user))
         return "Searching for: '{}'".format(search_str), data
 
     if not data or not data.get('search_query'):

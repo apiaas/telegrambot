@@ -104,7 +104,7 @@ class Bot(ClientId):
         self.page = Page(self)
 
     async def on_client_message(self, text, msg, client):
-        reply, data = parser.search_intent(text, client.data)
+        reply, data = parser.search_intent(text, client.data, client)
         data = await self.page.display(reply, data, msg)
         client.data.update(data)
         await in_thread(client.save)

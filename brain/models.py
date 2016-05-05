@@ -7,6 +7,7 @@ class Client(models.Model):
     telegram_id = models.IntegerField(null=True, blank=True, unique=True)
     first_name = models.CharField(blank=True, max_length=500)
     last_name = models.CharField(blank=True, max_length=500)
+    password = models.CharField(blank=True, max_length=500)
     data = JSONField(
         blank=True, load_kwargs={'object_pairs_hook': collections.OrderedDict}
     )
