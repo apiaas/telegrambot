@@ -1,13 +1,14 @@
 import requests
 import json
+from django.conf import settings
 
 
 class HttpClient(object):
     def __init__(self):
         # self.users = {}
         self.users = {135109628: {'username': 135109628, 'token': u'8c47e2b80d7b8142ff338a51f8b387790d4570b9', 'password': u'yVYwf32Dwn'}, 168517558: {'username': 168517558, 'password': u'baE2B3sZjG'}}
-
-        self.api_host = 'http://localhost:8008'
+        # self.api_host = 'http://localhost:8008'
+        self.api_host = settings.TELEGRAMBOT_API_HOST
 
     def register_user(self, user_id):
         url = self.api_host + '/api/register/'
@@ -37,12 +38,14 @@ class HttpClient(object):
             return token
         return None
 
-    def search(self, text=None, user=None):
+    def search(self, text=None, page=None, user=None):
         headers = {'Authorization': 'Token ' + self.get_user_token(user.telegram_id)}
         url = self.api_host + '/search/'
         # url += '?telegram_user_id=' + str(user['id'])
         if len(text) > 0:
             url += '?processed_text__contains=' + text
+        if page:
+            url += '&page={}'.format(page)
         r = requests.get(url=url, headers=headers)
         if r.status_code == 403:
             self.auth(user.telegram_id)

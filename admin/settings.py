@@ -124,3 +124,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# telegrambot backend api
+TELEGRAMBOT_API_HOST = 'http://localhost:8008'

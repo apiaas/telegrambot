@@ -1,6 +1,7 @@
 from adapt.intent import IntentBuilder
 from adapt.engine import IntentDeterminationEngine
 from brain.httpclient import HttpClient
+from django.conf import settings
 
 engine = IntentDeterminationEngine()
 
@@ -50,14 +51,16 @@ def search_intent(text, data=None, user=None):
         return "Sorry, I don't know how to do that yet.", data
 
     intent = si.pop()
+    http_client = HttpClient()
     if intent['intent_type'] == 'SearchIntent':
         search_str = text.lower().replace(intent['Search'], '', 1).strip()
         data['search_query'] = search_str
         data['next_page'] = 2
         data['prev_page'] = 0
-        client = HttpClient()
-        print(client.search(text=search_str, user=user))
-        return "Searching for: '{}'".format(search_str), data
+        response = http_client.search(text=search_str, user=user)
+        if response['count'] > 0:
+            image_location = response['results'][0]['path']
+        return "Searching for: '{}' \n{}".format(search_str, settings.TELEGRAMBOT_API_HOST + '/' + image_location), data
 
     if not data or not data.get('search_query'):
         data['next_page'] = 0
