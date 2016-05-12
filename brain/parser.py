@@ -5,6 +5,7 @@ from django.conf import settings
 from brain.vision import Vision
 from os.path import basename
 import subprocess
+from urllib.parse import urlparse, parse_qs
 
 engine = IntentDeterminationEngine()
 
@@ -67,6 +68,29 @@ def delete(name):
     subprocess.call(['rm', name])
 
 
+def get_full_url(path):
+    return settings.TELEGRAMBOT_API_HOST + '/m/' + path
+
+
+def parse_pages(response, data):
+    data['next_page'] = 0
+    if response.get('next'):
+        prev_page = parse_qs(urlparse(response['next']).query).get('page')
+        if prev_page:
+            data['next_page'] = prev_page[0]
+        else:
+            data['next_page'] = 1
+
+    data['prev_page'] = 0
+    if response.get('previous'):
+        prev_page = parse_qs(urlparse(response['previous']).query).get('page')
+        if prev_page:
+            data['prev_page'] = prev_page[0]
+        else:
+            data['prev_page'] = 1
+    return data
+
+
 async def search_intent(text, data=None, user=None, message=None, bot=None):
     if not data:
         data = {}
@@ -83,11 +107,15 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
     if intent['intent_type'] == 'SearchIntent':
         search_str = text.lower().replace(intent['Search'], '', 1).strip()
         data['search_query'] = search_str
-        data['next_page'] = 2
-        data['prev_page'] = 0
         response = http_client.search(text=search_str, user=user)
-        image_location = response['results'][0]['path']
-        return "Searching for: '{}' \n{}".format(search_str, settings.TELEGRAMBOT_API_HOST + '/' + image_location), data
+        if response['count'] > 0:
+            data['next_page'] = 2
+            data['prev_page'] = 0
+            return "Searching for: '{}' \n{}".format(search_str, get_full_url(response['results'][0]['path'])), data
+        else:
+            data['next_page'] = 0
+            data['prev_page'] = 0
+            return "Searching for: '{}' no result".format(search_str), data
 
     if not data or not data.get('search_query'):
         data['next_page'] = 0
@@ -97,17 +125,13 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
 
     if intent['intent_type'] == 'NextIntent':
         response = http_client.search(text=data['search_query'], user=user, page=data['next_page'])
-        data['next_page'] += 1
-        data['prev_page'] += 1
-        image_location = response['results'][0]['path']
-        return "Searching for: '{}' \n{}".format(data['search_query'], settings.TELEGRAMBOT_API_HOST + '/' + image_location), data
+        data = parse_pages(response, data)
+        return "Searching for: '{}' \n{}".format(data['search_query'], get_full_url(response['results'][0]['path'])), data
 
     if intent['intent_type'] == 'PreviousIntent':
         response = http_client.search(text=data['search_query'], user=user, page=data['prev_page'])
-        data['next_page'] -= 1
-        data['prev_page'] -= 1
-        image_location = response['results'][0]['path']
-        return "Searching for: '{}' \n{}".format(data['search_query'], settings.TELEGRAMBOT_API_HOST + '/' + image_location), data
+        data = parse_pages(response, data)
+        return "Searching for: '{}' \n{}".format(data['search_query'], get_full_url(response['results'][0]['path'])), data
 
     if intent['intent_type'] == 'PhotoIntent':
         data['next_page'] = 0
