@@ -43,7 +43,7 @@ class ClientId(telepot.async.Bot):
 
     async def on_chat_message(self, msg):
         client = await self._get_or_create_client(msg)
-        await self.on_client_message(msg['text'], msg, client)
+        await self.on_client_message(msg.get('text'), msg, client)
 
     async def on_callback_query(self, msg):
         client = await self._get_or_create_client(msg)
@@ -104,8 +104,9 @@ class Bot(ClientId):
         self.page = Page(self)
 
     async def on_client_message(self, text, msg, client):
-        reply, data = parser.search_intent(text, client.data, client)
-        data = await self.page.display(reply, data, msg)
+        bot = self
+        reply, data = await parser.search_intent(text=text, data=client.data, user=client, message=msg, bot=bot)
+        data = await self.page.display(reply=reply, data=data, msg=msg)
         client.data.update(data)
         await in_thread(client.save)
 
