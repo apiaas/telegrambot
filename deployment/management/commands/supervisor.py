@@ -31,7 +31,7 @@ redirect_stderr=true
 
 
 [supervisorctl]
-serverurl=unix://{{app_base}}/tmp/supervisor.sock
+serverurl=unix:/{{app_base}}/tmp/supervisor.sock
 
 [rpcinterface:supervisor]
 supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
