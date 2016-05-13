@@ -1,42 +1,52 @@
 import requests
 import json
 from django.conf import settings
+from brain.models import Client
 
 
 class HttpClient(object):
     def __init__(self):
         # self.users = {}
-        self.users = {135109628: {'username': 135109628, 'token': u'8c47e2b80d7b8142ff338a51f8b387790d4570b9',
-                                  'password': u'yVYwf32Dwn'},
-                      168517558: {'username': 168517558, 'password': u'baE2B3sZjG'}}
+        # self.users = {135109628: {'username': 135109628, 'token': u'8c47e2b80d7b8142ff338a51f8b387790d4570b9',
+        #                           'password': u'yVYwf32Dwn'},
+        #               168517558: {'username': 168517558, 'password': u'baE2B3sZjG'}}
         # self.api_host = 'http://localhost:8008'
         self.api_host = settings.TELEGRAMBOT_API_HOST
+
+    def get_client(self, telegram_id):
+        return Client.objects.get(telegram_id=telegram_id)
 
     def register_user(self, user_id):
         url = self.api_host + '/api/register/'
         r = requests.post(url=url, data={'username': user_id})
         if r.status_code == 201:
-            self.users[user_id] = {'username': user_id, 'password': json.loads(r.text)['password']}
+            client = self.get_client(user_id)
+            client.password = json.loads(r.text)['password']
+            client.save()
             return self.auth(user_id)
         return None
 
     def get_user_token(self, user_id):
-        user = self.users.get(user_id)
-        if user:
-            if user.get('token'):
-                return user.get('token')
-            elif user.get('password'):
+        client = self.get_client(user_id)
+        if client:
+            if client.token:
+                print('client token is True', client.token)
+                return client.token
+            elif client.password:
+                print('client password is True', client.password)
                 return self.auth(user_id)
         return self.register_user(user_id)
 
     def auth(self, user_id):
+        client = self.get_client(user_id)
         url = self.api_host + '/api/auth-token/'
         r = requests.post(url=url,
-                          data={'username': self.users[user_id]['username'],
-                                'password': self.users[user_id]['password']})
+                          data={'username': client.telegram_id,
+                                'password': client.password})
         if r.status_code == 200:
             token = json.loads(r.text)['token']
-            self.users[user_id]['token'] = token
+            client.token = token
+            client.save()
             return token
         return None
 
