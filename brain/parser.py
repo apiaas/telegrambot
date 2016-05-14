@@ -137,9 +137,8 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         data['next_page'] = 0
         data['prev_page'] = 0
         file_name = await download_file(bot, message['photo'][-1]['file_id'])
-        # recognizer = Vision()
-        # text = recognizer.recognize(file_name)
-        text = 'wasd asdw qwerty'
+        recognizer = Vision()
+        text = recognizer.recognize(file_name)
         http_client.send_document(file_name, message['photo'][-1]['file_id'], text,  user)
         delete(file_name)
         return "Send photo", data

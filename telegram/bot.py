@@ -107,6 +107,7 @@ class Bot(ClientId):
         bot = self
         reply, data = await parser.search_intent(text=text, data=client.data, user=client, message=msg, bot=bot)
         data = await self.page.display(reply=reply, data=data, msg=msg)
+        client = Client.objects.get(pk=client.pk)
         client.data.update(data)
         await in_thread(client.save)
 
