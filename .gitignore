@@ -1,0 +1,13 @@
+/deploy.sh
+/db.sqlite3*
+/notes*
+/deployment/tmp/*.sock
+/deployment/tmp/*.pid
+/deployment/log/*.log
+/static
+/media
+/env
+/*.conf
+/.idea
+~*
+__pycache__
