@@ -108,13 +108,14 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         search_str = text.lower().replace(intent['Search'], '', 1).strip()
         data['search_query'] = search_str
         response = http_client.search(text=search_str, user=user)
+        data['next_page'] = 0
+        data['prev_page'] = 0
         if response['count'] > 0:
-            data['next_page'] = 2
-            data['prev_page'] = 0
-            return "Searching for: '{}' \n{}".format(search_str, get_full_url(response['results'][0]['path'])), data
+            if response['count'] > 1:
+                data['next_page'] = 2
+            return "Searching for: '{}' \n{} \n{}".format(search_str, get_full_url(response['results'][0]['path']),
+                                                          response['results'][0]['processed_text'][0:250]), data
         else:
-            data['next_page'] = 0
-            data['prev_page'] = 0
             return "Searching for: '{}' no result".format(search_str), data
 
     if not data or not data.get('search_query'):
@@ -126,12 +127,14 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
     if intent['intent_type'] == 'NextIntent':
         response = http_client.search(text=data['search_query'], user=user, page=data['next_page'])
         data = parse_pages(response, data)
-        return "Searching for: '{}' \n{}".format(data['search_query'], get_full_url(response['results'][0]['path'])), data
+        return "Searching for: '{}' \n{} \n{}".format(data['search_query'], get_full_url(response['results'][0]['path']),
+                                                          response['results'][0]['processed_text'][0:250]), data
 
     if intent['intent_type'] == 'PreviousIntent':
         response = http_client.search(text=data['search_query'], user=user, page=data['prev_page'])
         data = parse_pages(response, data)
-        return "Searching for: '{}' \n{}".format(data['search_query'], get_full_url(response['results'][0]['path'])), data
+        return "Searching for: '{}' \n{} \n{}".format(data['search_query'], get_full_url(response['results'][0]['path']),
+                                                          response['results'][0]['processed_text'][0:250]), data
 
     if intent['intent_type'] == 'PhotoIntent':
         data['next_page'] = 0
@@ -139,6 +142,6 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         file_name = await download_file(bot, message['photo'][-1]['file_id'])
         recognizer = Vision()
         text = recognizer.recognize(file_name)
-        http_client.send_document(file_name, message['photo'][-1]['file_id'], text,  user)
+        http_client.send_document(file_name, message['photo'][-1]['file_id'], text, user)
         delete(file_name)
         return "Send photo", data
