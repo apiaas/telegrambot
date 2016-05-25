@@ -1,11 +1,13 @@
 from adapt.intent import IntentBuilder
 from adapt.engine import IntentDeterminationEngine
-from brain.httpclient import HttpClient
-from django.conf import settings
 from brain.vision import Vision
-from os.path import basename
 import subprocess
 from urllib.parse import urlparse, parse_qs
+from document.views import document_search
+from document.models import Document
+from django.test import RequestFactory
+from os.path import basename
+import time
 
 engine = IntentDeterminationEngine()
 
@@ -69,8 +71,27 @@ def delete(name):
 
 
 def get_full_url(path):
-    return settings.TELEGRAMBOT_API_HOST + '/m/' + path
+    return path
 
+
+def create_document(file_name=None, text=None, user=None):
+    data = dict(processed_text=text, description='text test example', file=file_name, filename=basename(file_name),
+                author=user, path='user_{0}/{1}_{2}'.format(user.id, str(time.time()), basename(file_name)))
+    document = Document(**data)
+    document.save()
+
+
+def search(text=None, page=None, user=None):
+    request_factory = RequestFactory()
+    url = '/search/'
+    if len(text) > 0:
+        url += '?processed_text__contains=' + text
+    if page:
+        url += '&page={}'.format(page)
+    request = request_factory.get(url)
+    request.user = user
+    response = document_search(request)
+    return dict(response.data)
 
 def parse_pages(response, data):
     data['next_page'] = 0
@@ -103,11 +124,10 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         return "Sorry, I don't know how to do that yet.", data
 
     intent = si.pop()
-    http_client = HttpClient()
     if intent['intent_type'] == 'SearchIntent':
         search_str = text.lower().replace(intent['Search'], '', 1).strip()
         data['search_query'] = search_str
-        response = http_client.search(text=search_str, user=user)
+        response = search(text=search_str, user=user)
         data['next_page'] = 0
         data['prev_page'] = 0
         if response['count'] > 0:
@@ -125,16 +145,18 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         return msg, data
 
     if intent['intent_type'] == 'NextIntent':
-        response = http_client.search(text=data['search_query'], user=user, page=data['next_page'])
+        response = search(text=data['search_query'], user=user, page=data['next_page'])
         data = parse_pages(response, data)
-        return "Searching for: '{}' \n{} \n{}".format(data['search_query'], get_full_url(response['results'][0]['path']),
-                                                          response['results'][0]['processed_text'][0:250]), data
+        return "Searching for: '{}' \n{} \n{}".format(data['search_query'],
+                                                      get_full_url(response['results'][0]['path']),
+                                                      response['results'][0]['processed_text'][0:250]), data
 
     if intent['intent_type'] == 'PreviousIntent':
-        response = http_client.search(text=data['search_query'], user=user, page=data['prev_page'])
+        response = search(text=data['search_query'], user=user, page=data['prev_page'])
         data = parse_pages(response, data)
-        return "Searching for: '{}' \n{} \n{}".format(data['search_query'], get_full_url(response['results'][0]['path']),
-                                                          response['results'][0]['processed_text'][0:250]), data
+        return "Searching for: '{}' \n{} \n{}".format(data['search_query'],
+                                                      get_full_url(response['results'][0]['path']),
+                                                      response['results'][0]['processed_text'][0:250]), data
 
     if intent['intent_type'] == 'PhotoIntent':
         data['next_page'] = 0
@@ -142,6 +164,7 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         file_name = await download_file(bot, message['photo'][-1]['file_id'])
         recognizer = Vision()
         text = recognizer.recognize(file_name)
-        http_client.send_document(file_name, message['photo'][-1]['file_id'], text, user)
+        # text = 'some text'
+        create_document(file_name, text, user)
         delete(file_name)
         return "Send photo", data

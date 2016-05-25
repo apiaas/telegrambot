@@ -1,10 +1,12 @@
 import requests
 import json
 from base64 import b64encode
+from telegram.models import Config
 
 
 class Vision(object):
-    key = 'AIzaSyD_qTrOwB1I7J76BM-7a9e3us0Q2JOYQm4'
+
+    key = Config.objects.get(name='vision').token
     url = 'https://vision.googleapis.com/v1/images:annotate?key={}'.format(key)
     template = {
         "requests": [
