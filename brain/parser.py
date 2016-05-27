@@ -30,19 +30,22 @@ previous_keywords = [
 ]
 
 photo_keywords = [
-    'photo',
-    'send photo',
+    # 'photo',
+    # 'send photo',
+    'thisisphotointentkey',
 ]
 
-# file_keywords = [
-#     'file',
-#     'send file',
-# ]
+file_keywords = [
+    # 'file',
+    # 'send file',
+    'thisisfileintentkey',
+]
 
 [engine.register_entity(k, 'Search') for k in search_keywords]
 [engine.register_entity(k, 'Next') for k in next_keywords]
 [engine.register_entity(k, 'Previous') for k in previous_keywords]
 [engine.register_entity(k, 'Photo') for k in photo_keywords]
+[engine.register_entity(k, 'File') for k in file_keywords]
 
 # structure intent
 intents = [
@@ -50,12 +53,18 @@ intents = [
     IntentBuilder("NextIntent").optionally('Next').build(),
     IntentBuilder("PreviousIntent").optionally('Previous').build(),
     IntentBuilder("PhotoIntent").optionally('Photo').build(),
+    IntentBuilder("FileIntent").optionally('File').build(),
 ]
 
 [engine.register_intent_parser(i) for i in intents]
 
 
-def determine(text):
+def determine(text, message):
+    if not text and message.get('photo'):
+        text = 'thisisphotointentkey'
+    if not text and message.get('document'):
+        text = 'thisisfileintentkey'
+
     return [i for i in engine.determine_intent(text) if i.get('confidence') > 0]
 
 
@@ -115,9 +124,7 @@ def parse_pages(response, data):
 async def search_intent(text, data=None, user=None, message=None, bot=None):
     if not data:
         data = {}
-    if not text and message.get('photo'):
-        text = 'send photo'
-    si = determine(text)
+    si = determine(text, message)
     if not si:
         data['next_page'] = 0
         data['prev_page'] = 0
@@ -158,13 +165,17 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
                                                       get_full_url(response['results'][0]['path']),
                                                       response['results'][0]['processed_text'][0:250]), data
 
-    if intent['intent_type'] == 'PhotoIntent':
+    if intent['intent_type'] in ['PhotoIntent', 'FileIntent']:
         data['next_page'] = 0
         data['prev_page'] = 0
-        file_name = await download_file(bot, message['photo'][-1]['file_id'])
+        if intent['intent_type'] in 'PhotoIntent':
+            file_name = await download_file(bot, message['photo'][-1]['file_id'])
+        if intent['intent_type'] in 'FileIntent':
+            file_name = await download_file(bot, message['document']['file_id'])
+
         recognizer = Vision()
         text = recognizer.recognize(file_name)
         # text = 'some text'
         create_document(file_name, text, user)
         delete(file_name)
-        return "Send photo", data
+        return "Photo was indexed.", data
