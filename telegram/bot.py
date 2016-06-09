@@ -61,6 +61,7 @@ class Page(object):
         keyboard = []
         next_page = data and data.get('next_page') or None
         previous_page = data and data.get('prev_page') or None
+        image = data and data.get('image') or None
 
         if previous_page:
             keyboard.append(
@@ -76,9 +77,19 @@ class Page(object):
                     callback_data='next'
                 )
             )
+        if previous_page or next_page:
+            keyboard.append(
+                InlineKeyboardButton(
+                    text='get image',
+                    callback_data='image'
+                )
+            )
+        if image:
+            await self.bot.sendPhoto(msg['message']['chat']['id'], image)
+            return data
 
         markup = keyboard and InlineKeyboardMarkup(inline_keyboard=[keyboard]) or None
-        if telepot.flavor(msg) == 'callback_query':
+        if telepot.flavor(msg) == 'callback_query' and not image:
             c, m = msg['message']['chat']['id'], msg['message']['message_id']
             await self.bot.editMessageText(
                 (c, m), reply, reply_markup=markup

@@ -33,5 +33,5 @@ class DocumentIndexSerializer(HaystackSerializer):
         # NOTE: Make sure you don't confuse these with model attributes. These
         # fields belong to the search index!
         fields = [
-            "text", "description", "processed_text", 'path', 'author',
+            "text", "description", "processed_text", "author", "file_id"
         ]

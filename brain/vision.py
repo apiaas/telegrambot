@@ -38,8 +38,8 @@ class Vision(object):
         print('Sending data...')
         r = requests.post(self.url, json.dumps(self.template))
         data = json.loads(r.text)
-        recognized_text = ''
-        for item in data['responses'][0]['textAnnotations']:
-            recognized_text += item['description'] + ' '
-        return recognized_text
-        # return data['responses'][0]['textAnnotations'][0]['description']
+        # recognized_text = ''
+        # for item in data['responses'][0]['textAnnotations']:
+        #     recognized_text += item['description'] + ' '
+        # return recognized_text
+        return data['responses'][0]['textAnnotations'][0]['description']
