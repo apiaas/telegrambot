@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+/.idea
+/db.sqlite*
+/deploy.sh
+/deployment
+/media
+/notes*
+/static
+/*.conf
+
