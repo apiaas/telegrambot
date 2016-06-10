@@ -229,7 +229,7 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         if data['next_page'] != 0:
             page = int(data['next_page']) - 1
         else:
-            page = 1
+            page = int(data['prev_page']) + 1
         response = search(text=data['search_query'], user=user, page=page)
         data['image'] = response['results'][0]['file_id']
         return None, data
