@@ -3,7 +3,7 @@ from guardian.shortcuts import assign_perm
 from document.models import Document
 from document.search_indexes import DocumentIndex
 from django.db import transaction
-from drf_haystack.serializers import HaystackSerializer
+from drf_haystack.serializers import HaystackSerializer, HighlighterMixin
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -21,7 +21,12 @@ class DocumentSerializer(serializers.ModelSerializer):
         # extra_kwargs = {'path': {'write_only': True}, 'filename': {'write_only': True}}
 
 
-class DocumentIndexSerializer(HaystackSerializer):
+class DocumentIndexSerializer(HighlighterMixin, HaystackSerializer):
+
+    # highlighter_css_class = "my-highlighter-class"
+    highlighter_css_class = None
+    highlighter_html_tag = "b"
+    highlighter_field = "processed_text"
 
     class Meta:
         model = Document

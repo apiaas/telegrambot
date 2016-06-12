@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from drf_haystack.generics import HaystackGenericAPIView
 import time
+from drf_haystack.filters import HaystackHighlightFilter
 
 
 
@@ -57,6 +58,7 @@ document_detail = DocumentDetail.as_view()
 class DocumentSearchView(HaystackGenericAPIView):
     serializer_class = DocumentIndexSerializer
     index_models = [Document]
+    # filter_backends = [HaystackHighlightFilter]
 
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

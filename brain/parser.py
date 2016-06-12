@@ -83,6 +83,10 @@ def crop_around_found(text, search_str):
     end_pos = start_pos + len(search_str)
     if start_pos == -1:
         return None, None
+    # else:
+    #     print(start_pos, end_pos)
+    #     bold_part = text[start_pos:end_pos]
+    #     text.replace(bold_part, '<b>{}</b>'.format(bold_part))
     if start_pos > around:
         start_pos -= around
     else:
@@ -135,7 +139,7 @@ def search(text=None, page=None, user=None):
     url = '/search/'
     if len(text) > 0:
         url += '?processed_text__contains=' + text
-    if page:
+    if page and int(page) > 1:
         url += '&page={}'.format(page)
     request = request_factory.get(url)
     request.user = user
@@ -167,6 +171,7 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         data = {}
     else:
         data['image'] = None
+    data['result'] = False
     si = determine(text, message)
     if not si:
         data['next_page'] = 0
@@ -181,11 +186,13 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         data['next_page'] = 0
         data['prev_page'] = 0
         if response['count'] > 0:
+            data['result'] = True
             if response['count'] > 1:
                 data['next_page'] = 2
             return "Searching for: '{}' \n{}".format(search_str,
-                                                     highlighter(response['results'][0]['processed_text'],
-                                                                 data['search_query'])), data
+                                                     # highlighter(response['results'][0]['processed_text'],
+                                                     # data['search_query'])), data
+                                                     response['results'][0]['highlighted']), data
         else:
             return "Searching for: '{}' no result".format(search_str), data
 
@@ -196,18 +203,22 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         return msg, data
 
     if intent['intent_type'] == 'NextIntent':
+        data['result'] = True
         response = search(text=data['search_query'], user=user, page=data['next_page'])
         data = parse_pages(response, data)
         return "Searching for: '{}' \n{}".format(data['search_query'],
-                                                 highlighter(response['results'][0]['processed_text'],
-                                                             data['search_query'])), data
+                                                 # highlighter(response['results'][0]['processed_text'],
+                                                 #             data['search_query'])), data
+                                                 response['results'][0]['highlighted']), data
 
     if intent['intent_type'] == 'PreviousIntent':
+        data['result'] = True
         response = search(text=data['search_query'], user=user, page=data['prev_page'])
         data = parse_pages(response, data)
         return "Searching for: '{}' \n{}".format(data['search_query'],
-                                                 highlighter(response['results'][0]['processed_text'],
-                                                             data['search_query'])), data
+                                                 # highlighter(response['results'][0]['processed_text'],
+                                                 #             data['search_query'])), data
+                                                 response['results'][0]['highlighted']), data
 
     if intent['intent_type'] in ['PhotoIntent', 'FileIntent']:
         data['next_page'] = 0

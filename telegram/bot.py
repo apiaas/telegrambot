@@ -77,7 +77,7 @@ class Page(object):
                     callback_data='next'
                 )
             )
-        if previous_page or next_page:
+        if data['result']:
             keyboard.append(
                 InlineKeyboardButton(
                     text='get image',
@@ -92,7 +92,7 @@ class Page(object):
         if telepot.flavor(msg) == 'callback_query' and not image:
             c, m = msg['message']['chat']['id'], msg['message']['message_id']
             await self.bot.editMessageText(
-                (c, m), reply, reply_markup=markup
+                (c, m), reply, reply_markup=markup, parse_mode='HTML'
             )
             return data
 
@@ -103,7 +103,8 @@ class Page(object):
             await self.bot.editMessageReplyMarkup(
                 (last_id[0], last_id[1]), reply_markup=None
             )
-        response = await self.bot.sendMessage(chat_id, reply, reply_markup=markup)
+        # response = await self.bot.sendMessage(chat_id, reply, reply_markup=markup)
+        response = await self.bot.sendMessage(chat_id, reply, reply_markup=markup, parse_mode='HTML')
         data['last_query_id'] = [chat_id, response['message_id']]
         data['last_query_markup'] = markup and True or False
         return data
