@@ -58,12 +58,15 @@ document_detail = DocumentDetail.as_view()
 class DocumentSearchView(HaystackGenericAPIView):
     serializer_class = DocumentIndexSerializer
     index_models = [Document]
-    # filter_backends = [HaystackHighlightFilter]
 
     def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(author=request.user.pk)
         page = self.paginate_queryset(queryset)
+        if request.query_params.get('page'):
+            tmp = request.GET.copy()
+            del tmp['page']
+            request.GET = tmp
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
