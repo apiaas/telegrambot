@@ -99,7 +99,8 @@ class Page(object):
         content_type, chat_type, chat_id = telepot.glance(msg)
         last_id = data.get('last_query_id')
         last_markup = data.get('last_query_markup')
-        if last_id and last_markup:
+        pages = next_page or previous_page
+        if last_id and last_markup and pages:
             await self.bot.editMessageReplyMarkup(
                 (last_id[0], last_id[1]), reply_markup=None
             )

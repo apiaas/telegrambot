@@ -30,14 +30,10 @@ previous_keywords = [
 ]
 
 photo_keywords = [
-    # 'photo',
-    # 'send photo',
     'this_is_upload_photo_intent_key',
 ]
 
 file_keywords = [
-    # 'file',
-    # 'send file',
     'this_is_upload_file_intent_key',
 ]
 
@@ -74,44 +70,6 @@ def determine(text, message):
 
     return [i for i in engine.determine_intent(text) if i.get('confidence') > 0]
 
-
-def crop_around_found(text, search_str):
-    around = 50
-    text = text.strip()
-    text_lower = text.lower()
-    start_pos = text_lower.find(search_str)
-    end_pos = start_pos + len(search_str)
-    if start_pos == -1:
-        return None, None
-    # else:
-    #     print(start_pos, end_pos)
-    #     bold_part = text[start_pos:end_pos]
-    #     text.replace(bold_part, '<b>{}</b>'.format(bold_part))
-    if start_pos > around:
-        start_pos -= around
-    else:
-        start_pos = 0
-    end_pos += around
-    cropped_text = text[start_pos:end_pos]
-    if start_pos != 0 and start_pos > 0:
-        cropped_text = '...' + cropped_text
-    if end_pos != len(text) - 1 and end_pos < len(text) - 1:
-        cropped_text = cropped_text + '...'
-    return cropped_text, end_pos
-
-
-def highlighter(text, search_str):
-    highlighted_text = ''
-    end_pos = 0
-    for i in range(5):
-        text = text[end_pos:]
-        highlighted_part, end_pos = crop_around_found(text, search_str)
-        if not highlighted_part:
-            break
-        highlighted_text += highlighted_part + '\n'
-    return highlighted_text
-
-
 async def download_file(bot, file_id):
     new_file = await bot.getFile(file_id)
     file_name = 'media/' + basename(new_file['file_path'])
@@ -121,10 +79,6 @@ async def download_file(bot, file_id):
 
 def delete(name):
     subprocess.call(['rm', name])
-
-
-def get_full_url(path):
-    return path
 
 
 def create_document(file_id=None, text=None, user=None):
@@ -190,8 +144,6 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
             if response['count'] > 1:
                 data['next_page'] = 2
             return "Searching for: '{}' \n{}".format(search_str,
-                                                     # highlighter(response['results'][0]['processed_text'],
-                                                     # data['search_query'])), data
                                                      response['results'][0]['highlighted']), data
         else:
             return "Searching for: '{}' no result".format(search_str), data
@@ -207,8 +159,6 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         response = search(text=data['search_query'], user=user, page=data['next_page'])
         data = parse_pages(response, data)
         return "Searching for: '{}' \n{}".format(data['search_query'],
-                                                 # highlighter(response['results'][0]['processed_text'],
-                                                 #             data['search_query'])), data
                                                  response['results'][0]['highlighted']), data
 
     if intent['intent_type'] == 'PreviousIntent':
@@ -216,8 +166,6 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         response = search(text=data['search_query'], user=user, page=data['prev_page'])
         data = parse_pages(response, data)
         return "Searching for: '{}' \n{}".format(data['search_query'],
-                                                 # highlighter(response['results'][0]['processed_text'],
-                                                 #             data['search_query'])), data
                                                  response['results'][0]['highlighted']), data
 
     if intent['intent_type'] in ['PhotoIntent', 'FileIntent']:
