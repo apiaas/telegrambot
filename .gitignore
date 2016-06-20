@@ -8,6 +8,5 @@ __pycache__
 /notes*
 /static
 /*.conf
-/document/migrations
 .*
 /admin/whoosh_index

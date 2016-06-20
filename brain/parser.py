@@ -7,7 +7,6 @@ from document.views import document_search
 from document.models import Document
 from django.test import RequestFactory
 from os.path import basename
-import time
 
 engine = IntentDeterminationEngine()
 
@@ -82,8 +81,7 @@ def delete(name):
 
 
 def create_document(file_id=None, text=None, user=None):
-    data = dict(processed_text=text, description='text test example', file_id=file_id,
-                author=user)
+    data = dict(processed_text=text, file_id=file_id, author=user)
     document = Document(**data)
     document.save()
 

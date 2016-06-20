@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from guardian.shortcuts import assign_perm
 from document.models import Document
 from document.search_indexes import DocumentIndex
 from django.db import transaction
@@ -11,19 +10,14 @@ class DocumentSerializer(serializers.ModelSerializer):
     def create(self, validated_data, user):
         with transaction.atomic():
             obj = super(DocumentSerializer, self).create(validated_data)
-            # assign_perm(Document.CAN_VIEW, user, obj)
-            # assign_perm(Document.CAN_DELETE, user, obj)
-            # assign_perm(Document.CAN_UPDATE, user, obj)
             return obj
 
     class Meta:
         model = Document
-        # extra_kwargs = {'path': {'write_only': True}, 'filename': {'write_only': True}}
 
 
 class DocumentIndexSerializer(HighlighterMixin, HaystackSerializer):
 
-    # highlighter_css_class = "my-highlighter-class"
     highlighter_css_class = None
     highlighter_html_tag = "b"
     highlighter_field = "processed_text"
@@ -38,5 +32,5 @@ class DocumentIndexSerializer(HighlighterMixin, HaystackSerializer):
         # NOTE: Make sure you don't confuse these with model attributes. These
         # fields belong to the search index!
         fields = [
-            "text", "description", "processed_text", "author", "file_id"
+            "text", "processed_text", "author", "file_id"
         ]
