@@ -28,6 +28,10 @@ previous_keywords = [
     'previous page',
 ]
 
+delete_keywords = [
+    'this_is_delete_intent_key',
+]
+
 photo_keywords = [
     'this_is_upload_photo_intent_key',
 ]
@@ -44,6 +48,7 @@ image_keywords = [
 [engine.register_entity(k, 'Search') for k in search_keywords]
 [engine.register_entity(k, 'Next') for k in next_keywords]
 [engine.register_entity(k, 'Previous') for k in previous_keywords]
+[engine.register_entity(k, 'Delete') for k in delete_keywords]
 [engine.register_entity(k, 'Photo') for k in photo_keywords]
 [engine.register_entity(k, 'File') for k in file_keywords]
 [engine.register_entity(k, 'Image') for k in image_keywords]
@@ -53,6 +58,7 @@ intents = [
     IntentBuilder("SearchIntent").optionally("Search").build(),
     IntentBuilder("NextIntent").optionally('Next').build(),
     IntentBuilder("PreviousIntent").optionally('Previous').build(),
+    IntentBuilder("DeleteIntent").optionally('Delete').build(),
     IntentBuilder("PhotoIntent").optionally('Photo').build(),
     IntentBuilder("FileIntent").optionally('File').build(),
     IntentBuilder("ImageIntent").optionally('Image').build(),
@@ -190,3 +196,35 @@ async def search_intent(text, data=None, user=None, message=None, bot=None):
         response = search(text=data['search_query'], user=user, page=page)
         data['image'] = response['results'][0]['file_id']
         return None, data
+
+    if intent['intent_type'] == 'DeleteIntent':
+        data['prev_page'] = int(data['prev_page'])
+        data['next_page'] = int(data['next_page'])
+        if data['next_page'] != 0:
+            current_page = data['next_page'] - 1
+        else:
+            current_page = data['prev_page'] + 1
+
+        response = search(text=data['search_query'], user=user, page=current_page)
+        image_file_id = response['results'][0]['file_id']
+        document = Document.objects.get(file_id=image_file_id)
+        document.delete()
+
+        if data['next_page'] == 0:
+            current_page -= 1
+            if data['prev_page'] > 0:
+                data['prev_page'] -= 1
+
+        if data['next_page'] == response['count']:
+            data['next_page'] = 0
+
+        response = search(text=data['search_query'], user=user, page=current_page)
+        if response['count'] > 0:
+            data['result'] = True
+            if response['count'] > 1:
+                data = parse_pages(response, data)
+            return "Searching for: '{}' \n{}".format(data['search_query'],
+                                                     response['results'][0]['highlighted']), data
+        else:
+            return "Searching for: '{}' no result".format(data['search_query']), data
+

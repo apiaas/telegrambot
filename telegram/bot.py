@@ -66,22 +66,28 @@ class Page(object):
         if previous_page:
             keyboard.append(
                 InlineKeyboardButton(
-                    text='previous page {}'.format(previous_page),
+                    text='prev {}'.format(previous_page),
                     callback_data='previous'
                 )
             )
         if next_page:
             keyboard.append(
                 InlineKeyboardButton(
-                    text='next page {}'.format(next_page),
+                    text='next {}'.format(next_page),
                     callback_data='next'
                 )
             )
-        if data['result']:
+        if data.get('result'):
             keyboard.append(
                 InlineKeyboardButton(
-                    text='get image',
+                    text='view',
                     callback_data='image'
+                )
+            )
+            keyboard.append(
+                InlineKeyboardButton(
+                    text='delete',
+                    callback_data='this_is_delete_intent_key'
                 )
             )
         if image:
@@ -91,9 +97,12 @@ class Page(object):
         markup = keyboard and InlineKeyboardMarkup(inline_keyboard=[keyboard]) or None
         if telepot.flavor(msg) == 'callback_query' and not image:
             c, m = msg['message']['chat']['id'], msg['message']['message_id']
-            await self.bot.editMessageText(
-                (c, m), reply, reply_markup=markup, parse_mode='HTML'
-            )
+            try:
+                await self.bot.editMessageText(
+                    (c, m), reply, reply_markup=markup, parse_mode='HTML'
+                )
+            except Exception as e:
+                print(e)
             return data
 
         content_type, chat_type, chat_id = telepot.glance(msg)
