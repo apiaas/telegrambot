@@ -37,9 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'haystack',
     'brain',
     'telegram',
     'deployment',
+    'document',
+
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -103,6 +107,35 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        #'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        # 'apiauth.authentication.TokenAuthentication'
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter'
+    ),
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+
+
+    # 'PAGINATE_BY': 5,
+    # 'PAGINATE_BY_PARAM': 'paginate_by',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 1,
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'TEST_REQUEST_RENDERER_CLASSES': (
+        'rest_framework.renderers.MultiPartRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.TemplateHTMLRenderer'
+    ),
+}
+
 if DEBUG:
     AUTH_PASSWORD_VALIDATORS = []
 
@@ -123,5 +156,25 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-STATIC_URL = '/static/'
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+# telegrambot backend api
+# TELEGRAMBOT_API_HOST = 'http://localhost:8008'
+
+
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+    },
+}
+
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend', 'guardian.backends.ObjectPermissionBackend')
+
+MEDIA_ROOT = BASE_DIR + "/media/"
+

@@ -11,3 +11,14 @@
 /.idea
 ~*
 __pycache__
+*.pyc
+/.idea
+/db.sqlite*
+/deploy.sh
+/deployment
+/media
+/notes*
+/static
+/*.conf
+.*
+/admin/whoosh_index
