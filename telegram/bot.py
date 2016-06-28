@@ -4,9 +4,7 @@ import telepot.async
 from brain.models import Client
 from brain import parser
 from django.core.exceptions import ObjectDoesNotExist
-from telepot.namedtuple import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardHide, ForceReply
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-from telepot.namedtuple import InlineQueryResultArticle, InlineQueryResultPhoto, InputTextMessageContent
 
 
 async def in_thread(func, *args):
